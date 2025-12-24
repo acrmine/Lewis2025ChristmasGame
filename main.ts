@@ -5,6 +5,13 @@ enum ActionKind {
 }
 function handlePlayerMovement () {
     playerRobot.vx += controller.dx()
+    if (playerRobot.vx > 0) {
+        playerRobot.vx = Math.max(playerRobot.vx - linearDamping, 0)
+    } else if (playerRobot.vx < 0) {
+        playerRobot.vx = Math.min(playerRobot.vx + linearDamping, 0)
+    } else {
+    	
+    }
 }
 function assemblePlayerAnims (mySprite: Sprite) {
     customUtils.setDataImageArray(mySprite, "playerIdle", [
@@ -24,7 +31,8 @@ function assignPlayerAnims (mySprite: Sprite) {
     )
 }
 let playerRobot: Sprite = null
-let linearDamping = 1
+let linearDamping = 0
+linearDamping = 1
 let testLevel = tiles.createMap(tilemap`level1`)
 tiles.loadMap(testLevel)
 playerRobot = sprites.create(assets.image`orange_robot_idle_0`, SpriteKind.Player)
