@@ -26,8 +26,7 @@ function handlePlayerMovement () {
     }
 }
 function assemblePlayerAnims (mySprite: Sprite) {
-    customUtils.setDataImageArray(mySprite, "playerIdle", [
-    ])
+    customUtils.setDataImageArray(mySprite, "playerIdle", [])
 }
 function assignPlayerAnims (mySprite: Sprite) {
     characterAnimations.loopFrames(
