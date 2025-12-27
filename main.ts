@@ -124,6 +124,24 @@ function assignPlayerAnims (mySprite: Sprite) {
     200,
     characterAnimations.rule(Predicate.NotMoving, Predicate.FacingLeft)
     )
+    characterAnimations.loopFrames(
+    mySprite,
+    customUtils.readDataImageArray(mySprite, "playerRunRight"),
+    100,
+    characterAnimations.rule(Predicate.MovingRight)
+    )
+    characterAnimations.loopFrames(
+    mySprite,
+    customUtils.readDataImageArray(mySprite, "playerRunLeft"),
+    100,
+    characterAnimations.rule(Predicate.MovingLeft)
+    )
+    characterAnimations.runFrames(
+    mySprite,
+    customUtils.readDataImageArray(mySprite, "playerJumpRight"),
+    100,
+    characterAnimations.rule(Predicate.MovingUp)
+    )
 }
 let playerRobot: Sprite = null
 let jumpPower = 0
@@ -136,6 +154,9 @@ speedScalar = 2
 maxSpeed = 100
 gravity = 400
 jumpPower = -170
+if (playerRobot.isHittingTile(CollisionDirection.Bottom)) {
+	
+}
 tiles.setCurrentTilemap(tilemap`level1`)
 playerRobot = sprites.create(assets.image`orange_robot_idle_1`, SpriteKind.Player)
 scene.cameraFollowSprite(playerRobot)
