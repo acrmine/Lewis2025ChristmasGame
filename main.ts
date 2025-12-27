@@ -3,6 +3,38 @@ enum ActionKind {
     Idle,
     Jumping
 }
+function assignPlayerAnimsGround (mySprite: Sprite) {
+    characterAnimations.loopFrames(
+    mySprite,
+    customUtils.readDataImageArray(mySprite, "playerIdleRight"),
+    200,
+    characterAnimations.rule(Predicate.NotMoving, Predicate.FacingRight)
+    )
+    characterAnimations.loopFrames(
+    mySprite,
+    customUtils.readDataImageArray(mySprite, "playerIdleLeft"),
+    200,
+    characterAnimations.rule(Predicate.NotMoving, Predicate.FacingLeft)
+    )
+    characterAnimations.loopFrames(
+    mySprite,
+    customUtils.readDataImageArray(mySprite, "playerRunRight"),
+    100,
+    characterAnimations.rule(Predicate.MovingRight)
+    )
+    characterAnimations.loopFrames(
+    mySprite,
+    customUtils.readDataImageArray(mySprite, "playerRunLeft"),
+    100,
+    characterAnimations.rule(Predicate.MovingLeft)
+    )
+    characterAnimations.runFrames(
+    mySprite,
+    customUtils.readDataImageArray(mySprite, "playerJumpRight"),
+    100,
+    characterAnimations.rule(Predicate.MovingUp)
+    )
+}
 function handlePlayerMovement () {
     playerRobot.ay = gravity
     if (controller.B.isPressed() && playerRobot.isHittingTile(CollisionDirection.Bottom)) {
@@ -23,6 +55,49 @@ function handlePlayerMovement () {
         } else {
         	
         }
+    }
+    if (playerRobot.isHittingTile(CollisionDirection.Bottom)) {
+        inAir = false
+        if (!(animStateGround)) {
+            if (characterAnimations.matchesRule(playerRobot, characterAnimations.rule(Predicate.FacingRight))) {
+                animation.runImageAnimation(
+                playerRobot,
+                customUtils.readDataImageArray(playerRobot, "playerLandRight"),
+                100,
+                false
+                )
+            } else {
+                animation.runImageAnimation(
+                playerRobot,
+                customUtils.readDataImageArray(playerRobot, "playerLandLeft"),
+                100,
+                false
+                )
+            }
+            characterAnimations.setCharacterAnimationsEnabled(playerRobot, true)
+        }
+        animStateGround = true
+    } else {
+        inAir = true
+        if (animStateGround) {
+            characterAnimations.setCharacterAnimationsEnabled(playerRobot, false)
+            if (characterAnimations.matchesRule(playerRobot, characterAnimations.rule(Predicate.FacingRight))) {
+                animation.runImageAnimation(
+                playerRobot,
+                customUtils.readDataImageArray(playerRobot, "playerJumpRight"),
+                100,
+                false
+                )
+            } else {
+                animation.runImageAnimation(
+                playerRobot,
+                customUtils.readDataImageArray(playerRobot, "playerJumpLeft"),
+                100,
+                false
+                )
+            }
+        }
+        animStateGround = false
     }
 }
 function assemblePlayerAnims (mySprite: Sprite) {
@@ -111,38 +186,8 @@ function assemblePlayerAnims (mySprite: Sprite) {
     assets.image`orange_robot_deathleft_4`
     ])
 }
-function assignPlayerAnims (mySprite: Sprite) {
-    characterAnimations.loopFrames(
-    mySprite,
-    customUtils.readDataImageArray(mySprite, "playerIdleRight"),
-    200,
-    characterAnimations.rule(Predicate.NotMoving, Predicate.FacingRight)
-    )
-    characterAnimations.loopFrames(
-    mySprite,
-    customUtils.readDataImageArray(mySprite, "playerIdleLeft"),
-    200,
-    characterAnimations.rule(Predicate.NotMoving, Predicate.FacingLeft)
-    )
-    characterAnimations.loopFrames(
-    mySprite,
-    customUtils.readDataImageArray(mySprite, "playerRunRight"),
-    100,
-    characterAnimations.rule(Predicate.MovingRight)
-    )
-    characterAnimations.loopFrames(
-    mySprite,
-    customUtils.readDataImageArray(mySprite, "playerRunLeft"),
-    100,
-    characterAnimations.rule(Predicate.MovingLeft)
-    )
-    characterAnimations.runFrames(
-    mySprite,
-    customUtils.readDataImageArray(mySprite, "playerJumpRight"),
-    100,
-    characterAnimations.rule(Predicate.MovingUp)
-    )
-}
+let animStateGround = false
+let inAir = false
 let playerRobot: Sprite = null
 let jumpPower = 0
 let gravity = 0
@@ -154,14 +199,11 @@ speedScalar = 2
 maxSpeed = 100
 gravity = 400
 jumpPower = -170
-if (playerRobot.isHittingTile(CollisionDirection.Bottom)) {
-	
-}
 tiles.setCurrentTilemap(tilemap`level1`)
 playerRobot = sprites.create(assets.image`orange_robot_idle_1`, SpriteKind.Player)
 scene.cameraFollowSprite(playerRobot)
 assemblePlayerAnims(playerRobot)
-assignPlayerAnims(playerRobot)
+assignPlayerAnimsGround(playerRobot)
 game.onUpdate(function () {
     handlePlayerMovement()
 })
