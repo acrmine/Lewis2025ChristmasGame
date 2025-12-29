@@ -270,9 +270,16 @@ linearDamping = 12
 speedScalar = 2
 maxSpeed = 100
 gravity = 400
-jumpPower = -170
+jumpPower = -200
 currAttack = 1
 tiles.setCurrentTilemap(tilemap`level1`)
+scene.setBackgroundColor(9)
+scroller.setLayerImage(scroller.BackgroundLayer.Layer0, assets.image`scaledIndustBkgd_1`)
+scroller.setCameraScrollingMultipliers(0.2, 1, scroller.BackgroundLayer.Layer0)
+scroller.setLayerImage(scroller.BackgroundLayer.Layer1, assets.image`scaledIndustBkgd_2`)
+scroller.setCameraScrollingMultipliers(0.4, 0, scroller.BackgroundLayer.Layer1)
+scroller.setLayerImage(scroller.BackgroundLayer.Layer2, assets.image`scaledIndustBkgd_3`)
+scroller.setCameraScrollingMultipliers(0.8, 0, scroller.BackgroundLayer.Layer2)
 playerRobot = sprites.create(assets.image`orange_robot_idle_1`, SpriteKind.Player)
 scene.cameraFollowSprite(playerRobot)
 assemblePlayerAnims(playerRobot)
