@@ -3,6 +3,72 @@ enum ActionKind {
     Idle,
     Jumping
 }
+function handleAttack () {
+    attacking = true
+    characterAnimations.setCharacterAnimationsEnabled(playerRobot, false)
+    if (nextAttack == "right") {
+        nextAttack = ""
+        if (currAttack == 1) {
+            animation.runImageAnimation(
+            playerRobot,
+            customUtils.readDataImageArray(playerRobot, "playerAttackRight1"),
+            100,
+            false
+            )
+            currAttack = 2
+        } else {
+            animation.runImageAnimation(
+            playerRobot,
+            customUtils.readDataImageArray(playerRobot, "playerAttackRight2"),
+            100,
+            false
+            )
+            currAttack = 1
+        }
+        animWait = 400
+    } else if (nextAttack == "left") {
+        nextAttack = ""
+        if (currAttack == 1) {
+            animation.runImageAnimation(
+            playerRobot,
+            customUtils.readDataImageArray(playerRobot, "playerAttackLeft1"),
+            100,
+            false
+            )
+            currAttack = 2
+        } else {
+            animation.runImageAnimation(
+            playerRobot,
+            customUtils.readDataImageArray(playerRobot, "playerAttackLeft2"),
+            100,
+            false
+            )
+            currAttack = 1
+        }
+        animWait = 400
+    } else {
+    	
+    }
+    timer.after(animWait, function () {
+        attacking = false
+        if (!(inAir)) {
+            characterAnimations.setCharacterAnimationsEnabled(playerRobot, true)
+        }
+        if (nextAttack != "") {
+            handleAttack()
+        }
+    })
+}
+controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
+    if (characterAnimations.matchesRule(playerRobot, characterAnimations.rule(Predicate.FacingRight))) {
+        nextAttack = "right"
+    } else {
+        nextAttack = "left"
+    }
+    if (!(attacking)) {
+        handleAttack()
+    }
+})
 function assignPlayerAnimsGround (mySprite: Sprite) {
     characterAnimations.loopFrames(
     mySprite,
@@ -74,7 +140,9 @@ function handlePlayerMovement () {
                 false
                 )
             }
-            characterAnimations.setCharacterAnimationsEnabled(playerRobot, true)
+            if (!(attacking)) {
+                characterAnimations.setCharacterAnimationsEnabled(playerRobot, true)
+            }
         }
         animStateGround = true
     } else {
@@ -188,7 +256,11 @@ function assemblePlayerAnims (mySprite: Sprite) {
 }
 let animStateGround = false
 let inAir = false
+let animWait = 0
+let nextAttack = ""
+let attacking = false
 let playerRobot: Sprite = null
+let currAttack = 0
 let jumpPower = 0
 let gravity = 0
 let maxSpeed = 0
@@ -199,6 +271,7 @@ speedScalar = 2
 maxSpeed = 100
 gravity = 400
 jumpPower = -170
+currAttack = 1
 tiles.setCurrentTilemap(tilemap`level1`)
 playerRobot = sprites.create(assets.image`orange_robot_idle_1`, SpriteKind.Player)
 scene.cameraFollowSprite(playerRobot)
