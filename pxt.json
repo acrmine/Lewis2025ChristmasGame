@@ -9,7 +9,8 @@
         "arcade-background-scroll": "github:microsoft/arcade-background-scroll#v0.1.2",
         "tilemaps": "github:microsoft/pxt-tilemaps#v1.12.0",
         "color-coded-tilemap": "*",
-        "Timers": "github:microsoft/arcade-timers#v1.1.0"
+        "Timers": "github:microsoft/arcade-timers#v1.1.0",
+        "Sprite Walls": "github:Sonicblaston62/Sprite-Walls#86a57ee3f0c3cb96b06187a92ea5235b58adb687"
     },
     "files": [
         "main.blocks",

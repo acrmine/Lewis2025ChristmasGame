@@ -3,6 +3,9 @@ enum ActionKind {
     Idle,
     Jumping
 }
+namespace SpriteKind {
+    export const EndGoal = SpriteKind.create()
+}
 function handleAttack () {
     attacking = true
     characterAnimations.setCharacterAnimationsEnabled(playerRobot, false)
@@ -168,6 +171,146 @@ function handlePlayerMovement () {
         animStateGround = false
     }
 }
+sprites.onOverlap(SpriteKind.Player, SpriteKind.EndGoal, function (sprite, otherSprite) {
+    if (attacking) {
+        levelEnd.scale = 3
+        levelEnd.z = 10
+        animation.runImageAnimation(
+        otherSprite,
+        [img`
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . 4 4 . . . . . . . 
+            . . . . . . 4 5 5 4 . . . . . . 
+            . . . . . . 2 5 5 2 . . . . . . 
+            . . . . . . . 2 2 . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            `,img`
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . 4 . . . . . 
+            . . . . 2 . . . . 4 4 . . . . . 
+            . . . . 2 4 . . 4 5 4 . . . . . 
+            . . . . . 2 4 d 5 5 4 . . . . . 
+            . . . . . 2 5 5 5 5 4 . . . . . 
+            . . . . . . 2 5 5 5 5 4 . . . . 
+            . . . . . . 2 5 4 2 4 4 . . . . 
+            . . . . . . 4 4 . . 2 4 4 . . . 
+            . . . . . 4 4 . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            `,img`
+            . 3 . . . . . . . . . . . 4 . . 
+            . 3 3 . . . . . . . . . 4 4 . . 
+            . 3 d 3 . . 4 4 . . 4 4 d 4 . . 
+            . . 3 5 3 4 5 5 4 4 d d 4 4 . . 
+            . . 3 d 5 d 1 1 d 5 5 d 4 4 . . 
+            . . 4 5 5 1 1 1 1 5 1 1 5 4 . . 
+            . 4 5 5 5 5 1 1 5 1 1 1 d 4 4 . 
+            . 4 d 5 1 1 5 5 5 1 1 1 5 5 4 . 
+            . 4 4 5 1 1 5 5 5 5 5 d 5 5 4 . 
+            . . 4 3 d 5 5 5 d 5 5 d d d 4 . 
+            . 4 5 5 d 5 5 5 d d d 5 5 4 . . 
+            . 4 5 5 d 3 5 d d 3 d 5 5 4 . . 
+            . 4 4 d d 4 d d d 4 3 d d 4 . . 
+            . . 4 5 4 4 4 4 4 4 4 4 4 . . . 
+            . 4 5 4 . . 4 4 4 . . . 4 4 . . 
+            . 4 4 . . . . . . . . . . 4 4 . 
+            `,img`
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . b b . b b b . . . . . 
+            . . . . b 1 1 b 1 1 1 b . . . . 
+            . . b b 3 1 1 d d 1 d d b b . . 
+            . b 1 1 d d b b b b b 1 1 b . . 
+            . b 1 1 1 b . . . . . b d d b . 
+            . . 3 d d b . . . . . b d 1 1 b 
+            . b 1 d 3 . . . . . . . b 1 1 b 
+            . b 1 1 b . . . . . . b b 1 d b 
+            . b 1 d b . . . . . . b d 3 d b 
+            . b b d d b . . . . b d d d b . 
+            . b d d d d b . b b 3 d d 3 b . 
+            . . b d d 3 3 b d 3 3 b b b . . 
+            . . . b b b d d d d d b . . . . 
+            . . . . . . b b b b b . . . . . 
+            `,img`
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            `],
+        200,
+        false
+        )
+        pause(800)
+        sprites.destroy(levelEnd, effects.warmRadial, 500)
+        game.gameOver(true)
+    } else {
+    	
+    }
+})
+function spawnGoal (xLoc: number, yLoc: number) {
+    levelEnd = sprites.create(img`
+        ................
+        .......111......
+        ......1333......
+        ......1311......
+        ......3111......
+        ......3b131.....
+        ......b3b311....
+        ......313131....
+        .....b3131b1....
+        .....b333113....
+        .....bc31311....
+        ....3bc31131....
+        ....3bc1111.....
+        ....3c31111.....
+        ...33c111113....
+        ...1b3111111....
+        .....3111111....
+        .....3113111....
+        .....31131113...
+        .bbbb31131111bb.
+        b11133133111131b
+        3113131331131313
+        3113111331133313
+        3111311331133113
+        3111133333333113
+        3111113333311113
+        b11111111111111b
+        3bb1111111111bb3
+        1333333333333331
+        13333bbbbbb33331
+        b33333333333333b
+        cbbbbbbbbbbbbbbc
+        `, SpriteKind.EndGoal)
+    levelEnd.setPosition(xLoc * 16 + 8, yLoc * 16 + 16)
+    levelEnd.z = -10
+}
 function assemblePlayerAnims (mySprite: Sprite) {
     customUtils.setDataImageArray(mySprite, "playerIdleRight", [
     assets.image`orange_robot_idle_1`,
@@ -254,6 +397,7 @@ function assemblePlayerAnims (mySprite: Sprite) {
     assets.image`orange_robot_deathleft_4`
     ])
 }
+let levelEnd: Sprite = null
 let animStateGround = false
 let inAir = false
 let animWait = 0
@@ -272,9 +416,8 @@ maxSpeed = 100
 gravity = 400
 jumpPower = -200
 currAttack = 1
-tiles.setCurrentTilemap(tilemap`level1`)
+tiles.setCurrentTilemap(tilemap`Level1`)
 scene.setBackgroundColor(9)
-scroller.scrollBackgroundWithCamera(scroller.CameraScrollMode.BothDirections)
 scroller.setLayerImage(scroller.BackgroundLayer.Layer0, assets.image`scaledIndustBkgd_1`)
 scroller.setCameraScrollingMultipliers(0.2, 0, scroller.BackgroundLayer.Layer0)
 scroller.setLayerImage(scroller.BackgroundLayer.Layer1, assets.image`scaledIndustBkgd_2`)
@@ -282,9 +425,11 @@ scroller.setCameraScrollingMultipliers(0.4, 0, scroller.BackgroundLayer.Layer1)
 scroller.setLayerImage(scroller.BackgroundLayer.Layer2, assets.image`scaledIndustBkgd_3`)
 scroller.setCameraScrollingMultipliers(0.8, 1, scroller.BackgroundLayer.Layer2)
 playerRobot = sprites.create(assets.image`orange_robot_idle_1`, SpriteKind.Player)
+playerRobot.setPosition(25, 150)
 scene.cameraFollowSprite(playerRobot)
 assemblePlayerAnims(playerRobot)
 assignPlayerAnimsGround(playerRobot)
+spawnGoal(30, 7)
 game.onUpdate(function () {
     handlePlayerMovement()
 })
