@@ -5,6 +5,8 @@ enum ActionKind {
 }
 namespace SpriteKind {
     export const EndGoal = SpriteKind.create()
+    export const Building = SpriteKind.create()
+    export const Door = SpriteKind.create()
 }
 function handleAttack () {
     attacking = true
@@ -62,7 +64,7 @@ function handleAttack () {
         }
     })
 }
-controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
+controller.B.onEvent(ControllerButtonEvent.Pressed, function () {
     if (characterAnimations.matchesRule(playerRobot, characterAnimations.rule(Predicate.FacingRight))) {
         nextAttack = "right"
     } else {
@@ -71,6 +73,27 @@ controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
     if (!(attacking)) {
         handleAttack()
     }
+})
+sprites.onOverlap(SpriteKind.Player, SpriteKind.Door, function (sprite, otherSprite) {
+    tiles.loadConnectedMap(sprites.readDataNumber(otherSprite, "doorKind"))
+    playerRobot.setPosition(sprites.readDataNumber(otherSprite, "nextX"), sprites.readDataNumber(otherSprite, "nextY"))
+    backDoorExists = sprites.readDataBoolean(otherSprite, "bDoorExists")
+    if (backDoorExists) {
+        console.log("spawning door back")
+        nDoorSprite = sprites.create(otherSprite.data[0], SpriteKind.Door)
+        nDoorSprite.setPosition(sprites.readDataNumber(otherSprite, "bXLoc"), sprites.readDataNumber(otherSprite, "bYLoc"))
+        sprites.setDataBoolean(nDoorSprite, "bDoorExists", backDoorExists)
+        sprites.setDataNumber(nDoorSprite, "nextX", sprites.readDataNumber(otherSprite, "bNextX"))
+        sprites.setDataNumber(nDoorSprite, "nextY", sprites.readDataNumber(otherSprite, "bNextY"))
+        sprites.setDataNumber(nDoorSprite, "doorKind", sprites.readDataNumber(otherSprite, "nDoorKind"))
+        nDoorSprite.data[0] = otherSprite.image
+        sprites.setDataNumber(nDoorSprite, "bXLoc", otherSprite.x)
+        sprites.setDataNumber(nDoorSprite, "bYLoc", otherSprite.y)
+        sprites.setDataNumber(nDoorSprite, "bNextX", sprites.readDataNumber(otherSprite, "nextX"))
+        sprites.setDataNumber(nDoorSprite, "bNextY", sprites.readDataNumber(otherSprite, "nextY"))
+        sprites.setDataNumber(nDoorSprite, "nDoorKind", sprites.readDataNumber(otherSprite, "doorKind"))
+    }
+    sprites.destroy(otherSprite)
 })
 function assignPlayerAnimsGround (mySprite: Sprite) {
     characterAnimations.loopFrames(
@@ -106,7 +129,7 @@ function assignPlayerAnimsGround (mySprite: Sprite) {
 }
 function handlePlayerMovement () {
     playerRobot.ay = gravity
-    if (controller.B.isPressed() && playerRobot.isHittingTile(CollisionDirection.Bottom)) {
+    if (controller.A.isPressed() && playerRobot.isHittingTile(CollisionDirection.Bottom)) {
         playerRobot.vy = jumpPower
     }
     // Apply motion based on left right button being pressed, move faster when going in the opposite direction for quick turn around
@@ -399,6 +422,8 @@ function assemblePlayerAnims (mySprite: Sprite) {
 }
 let levelEnd: Sprite = null
 let animStateGround = false
+let backDoorExists = false
+let house: Sprite = null
 let inAir = false
 let animWait = 0
 let nextAttack = ""
@@ -410,13 +435,39 @@ let gravity = 0
 let maxSpeed = 0
 let speedScalar = 0
 let linearDamping = 0
+let inHouse1: tiles.WorldMap = null
+let mainLevel: tiles.WorldMap = null
+let exitDoor = null
+let nDoorSprite: Sprite = null
+function spawnDoor (doorImage: Image, xLoc: number, yLoc: number, nSpawnX: number, nSpawnY: number, currentLocation: tiles.WorldMap, newLocation: tiles.WorldMap, door: number, 
+                    bDoorExists: boolean, bDoorImage: Image = null, bXLoc: number = null, bYLoc: number = null, bnSpawnX: number = null, bnSpawnY: number = null, nDoor: number = null) {
+    let doorSprite = sprites.create(doorImage, SpriteKind.Door)
+    doorSprite.setPosition((xLoc * 16) + (doorImage.width / 2), (yLoc * 16) + (doorImage.height / 2))
+    tiles.connectMapById(currentLocation, newLocation, door)
+    sprites.setDataBoolean(doorSprite, "bDoorExists", bDoorExists)
+    sprites.setDataNumber(doorSprite, "nextX", (nSpawnX * 16) + 16)
+    sprites.setDataNumber(doorSprite, "nextY", (nSpawnY * 16) + 16)
+    sprites.setDataNumber(doorSprite, "doorKind", door)
+    if (bDoorExists) {
+        console.log("got into connecting both locations")
+        tiles.connectMapById(newLocation, currentLocation, nDoor)
+        doorSprite.data[0] = bDoorImage
+        sprites.setDataNumber(doorSprite, "bXLoc", (bXLoc * 16) + (bDoorImage.width / 2))
+        sprites.setDataNumber(doorSprite, "bYLoc", (bYLoc * 16) + (bDoorImage.height / 2))
+        sprites.setDataNumber(doorSprite, "bNextX", (bnSpawnX * 16) + 16)
+        sprites.setDataNumber(doorSprite, "bNextY", (bnSpawnY * 16) + 16)
+        sprites.setDataNumber(doorSprite, "nDoorKind", nDoor)
+    }
+}
 linearDamping = 12
 speedScalar = 2
 maxSpeed = 100
 gravity = 400
 jumpPower = -200
 currAttack = 1
-tiles.setCurrentTilemap(tilemap`Level1`)
+mainLevel = tiles.createMap(tilemap`Level1`)
+inHouse1 = tiles.createMap(tilemap`insideHouse1`)
+tiles.loadMap(mainLevel)
 scroller.setLayerImage(scroller.BackgroundLayer.Layer0, img`
     ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
     ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
@@ -542,10 +593,78 @@ scroller.setLayerImage(scroller.BackgroundLayer.Layer0, img`
 scroller.setCameraScrollingMultipliers(1, 1)
 playerRobot = sprites.create(assets.image`orange_robot_idle_1`, SpriteKind.Player)
 playerRobot.setPosition(25, 150)
+playerRobot.z = 6
 scene.cameraFollowSprite(playerRobot)
 assemblePlayerAnims(playerRobot)
 assignPlayerAnimsGround(playerRobot)
 spawnGoal(30, 7)
+spawnDoor(img`
+....................8a8aa8a8....................
+.................aaa888aa8a8aaa.................
+..............aaa8aa8a8aa888aa8aaa..............
+...........8aa8aa8888a8aa8a8888aa8aa8...........
+........8888aa8aa8aa8a8aa8a8aa8aa8aa8888........
+.....aaa8aa8aa8888aa8a8aa8a8aa8888aa8aa8aaa.....
+...aa8888aa8aa8aa8aa888aa888aa8aa8aa8aa8888aa...
+dccaa8aa8aa8888aa8aa8a8aa8a8aa8aa8888aa8aa8aaccd
+bcb888aa8aa8aa8aa8aa8a8aa8a8aa8aa8aa8aa8aa888bcb
+dbbaa8aa8888aa8aa8888a8aa8a8888aa8aa8888aa8aabbd
+dbbaa8aa8aa8aa8888aa8a8aa8a8aa8888aa8aa8aa8aabbd
+dccaa8888aa8aa8aa8aa888aa888aa8aa8aa8aa8888aaccd
+bcbaa8aa8aa8888aa8aa8a8aa8a8aa8aa8888aa8aa8aabcb
+dbb888aa8aa8aa8aa8aa8a8aa8a8aa8aa8aa8aa8aa888bbd
+dbbaa8aa8888aa8aa8aa8a8aa8a8aa8aa8aa8888aa8aabbd
+dccaa8aa8aa8aa8aa8888a8aa8a8888aa8aa8aa8aa8aaccd
+bcbaa8888aa8aa8888aa888aa888aa8888aa8aa8888aabcb
+dbbaa8aa8aa8888aa8aa8a8aa8a8aa8aa8888aa8aa8aabbd
+dbb888aa8aa8aa8aa8aa8a8aa8a8aa8aa8aa8aa8aa888bbd
+dccaa8aa8888aa8aa8aa8a8aa8a8aa8aa8aa8888aa8aaccd
+bcbaa8aa8aa8aa8aa8aa888aa888aa8aa8aa8aa8aa8aabcb
+dbbaa8888aa8aa8aa888ccbbbbcc888aa8aa8aa8888aabbd
+dbbaa8aa8aa8aa888ccbbbbbbbbbbcc888aa8aa8aa8aabbd
+dcc888aa8aa888ccbbbbbccccccbbbbbcc888aa8aa888ccd
+bcbaa8aa888ccbbbbbccbddddddbccbbbbbcc888aa8aabcb
+dbbaa8aaccbbbbbccbddddddddddddbccbbbbbccaa8aabbd
+dbbaaccbbbbcccbddddddddddddddddddbcccbbbbccaabbd
+dcccbbbbcccbdddbccbbbbbbbbbbbbccbdddbcccbbbbcccd
+ccccccccbbbbbbbcbddddddddddddddbcbbbbbbbcccccccc
+bddddddddddddbcddddddddddddddddddcbddddddddddddb
+bbcbdddddddddcbd1111111111111111dbcdddddddddbcbb
+bbbcccccccccccd1bbbbbbbbbbbbbbbb1dcccccccccccbbb
+bbbbdddddddddc11beeeeeeeeeeeeeeb11cdddddddddbbbb
+bbb8aaaaaaa8dc1be3b33b33b33b33beb1cd8aaaaaaa8bbb
+bbb888888888dc1be3b33b33b33b33beb1cd888888888bbb
+bbb833333338dcbbf3b3effffffe33bebbcd833333338bbb
+bbb83ff3ff38dcbbf3bffffffffff3bebbcd83ff3ff38bbb
+bbb83cc3cc38dcbbf3effffffffffebebbcd83cc3cc38bbb
+bbb833333338dcbbf3eeeeeeeeeeeebebbcd833333338bbb
+cbb83ff3ff38dcbbe3b33b33b33b33bebbcd83ff3ff38bbc
+cbb83cc3cc38dcbbe3b33b33b33b33bebbcd83cc3cc38bbc
+ccbbbbbbbbbbdcbbe3b33b33b33feeeebbcdbbbbbbbbbbcc
+.cbbdddddddddcbbe3b33b33b33ffffebbcdddddddddbbc.
+..cbdbbbdbbbdcbbf3b33b33b33f33febbcdbbbdbbbdbc..
+...cdbbbdbbbdcbbf3b33b33b33bffeebbcdbbbdbbbdc...
+....bddddddddcbbf3b33b33b33b33bebbcddddddddb....
+.....bdbbbdddcbbf3b33b33b33b33bebbcdddbbbdb.....
+......bcccbbbcbbe3b33b33b33b33bebbcbbbcccb......
+`, 0, 4.5, 8, 11, mainLevel, inHouse1, ConnectionKind.Door1, true, img`
+c b b b b b b b b b b b b b b c 
+c b b b b b b b b b b b b b b c 
+c d d d d d d d d d d d d d d c 
+c d d d d d d d d d d d d d d c 
+c c c c c c c c c c c c c c c c 
+c b b b f f f f f f f f b b b c 
+c d d b f f f f f f f f b d d c 
+c d d b f f f f f f f f b d d c 
+c d d b f f f f f f f f b d d c 
+c d d b f f f f f f f f b d d c 
+c b b c f f f f f f f f c b b c 
+c d d b f f f f f f f f b d d c 
+c d d b f f f f f c c f b d d c 
+c d d b f c c c f f f f b d d c 
+c d d b c c c f f c c c b d d c 
+a c c a c c c c c c c c a c c a 
+`, 12, 12, 3.5, 5, ConnectionKind.Door1)
 game.onUpdate(function () {
     handlePlayerMovement()
 })

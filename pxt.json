@@ -10,7 +10,8 @@
         "tilemaps": "github:microsoft/pxt-tilemaps#v1.12.0",
         "color-coded-tilemap": "*",
         "Timers": "github:microsoft/arcade-timers#v1.1.0",
-        "Sprite Walls": "github:Sonicblaston62/Sprite-Walls#86a57ee3f0c3cb96b06187a92ea5235b58adb687"
+        "Sprite Walls": "github:Sonicblaston62/Sprite-Walls#86a57ee3f0c3cb96b06187a92ea5235b58adb687",
+        "arcade-sprite-data": "github:microsoft/arcade-sprite-data#v0.2.1"
     },
     "files": [
         "main.blocks",
