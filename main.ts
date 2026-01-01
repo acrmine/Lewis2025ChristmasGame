@@ -79,7 +79,6 @@ sprites.onOverlap(SpriteKind.Player, SpriteKind.Door, function (sprite, otherSpr
     playerRobot.setPosition(sprites.readDataNumber(otherSprite, "nextX"), sprites.readDataNumber(otherSprite, "nextY"))
     backDoorExists = sprites.readDataBoolean(otherSprite, "bDoorExists")
     if (backDoorExists) {
-        console.log("spawning door back")
         nDoorSprite = sprites.create(otherSprite.data[0], SpriteKind.Door)
         nDoorSprite.setPosition(sprites.readDataNumber(otherSprite, "bXLoc"), sprites.readDataNumber(otherSprite, "bYLoc"))
         sprites.setDataBoolean(nDoorSprite, "bDoorExists", backDoorExists)
